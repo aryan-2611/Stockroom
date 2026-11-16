@@ -1,0 +1,990 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="theme-color" content="#f5f7f3">
+	<title>Stockroom | General Store</title>
+	<style>
+		:root {
+			color-scheme: light;
+			--ink: #202923;
+			--muted: #778078;
+			--paper: #ffffff;
+			--canvas: #f5f7f3;
+			--green: #28714f;
+			--green-dark: #205b40;
+			font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+			color: var(--ink);
+			background: var(--canvas);
+			font-synthesis: none;
+		}
+
+		* {
+			box-sizing: border-box;
+		}
+
+		html,
+		body {
+			overflow-x: hidden;
+		}
+
+		body {
+			margin: 0;
+			min-width: 0;
+			min-height: 100vh;
+			background:
+				radial-gradient(
+					ellipse at 88% 0%,
+					rgba(221, 233, 215, .54),
+					transparent 32rem
+				),
+				var(--canvas);
+		}
+		button,
+		input,
+		select {
+			font: inherit;
+		}
+
+		button {
+			cursor: pointer;
+		}
+
+		button:focus-visible,
+		input:focus-visible,
+		select:focus-visible,
+		a:focus-visible {
+			outline: 3px solid #92c2a5;
+			outline-offset: 2px;
+		}
+
+		.app-shell {
+			min-height: 100vh;
+		}
+
+		.topbar {
+			display: flex;
+			height: 68px;
+			align-items: center;
+			justify-content: space-between;
+			padding: 0 max(28px, calc((100vw - 1240px) / 2));
+			border-bottom: 1px solid rgba(221, 227, 219, .9);
+			background: rgba(255, 255, 255, .88);
+		}
+
+		.brand {
+			display: inline-flex;
+			align-items: center;
+			gap: 10px;
+			color: var(--ink);
+			font-size: 19px;
+			font-weight: 800;
+			text-decoration: none;
+		}
+
+		.brand-mark {
+			display: grid;
+			width: 31px;
+			height: 31px;
+			place-items: center;
+			border-radius: 9px;
+			background: var(--green);
+			color: #fff;
+			font-family: Georgia, serif;
+			font-size: 19px;
+			font-weight: 700;
+		}
+
+		.brand-dot {
+			color: #d28340;
+		}
+
+		.topbar-right {
+			display: flex;
+			align-items: center;
+			gap: 18px;
+		}
+
+		.store-label {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			color: #525c53;
+			font-size: 13px;
+			font-weight: 600;
+		}
+
+		.store-indicator {
+			width: 7px;
+			height: 7px;
+			border-radius: 50%;
+			background: #58a476;
+		}
+
+		.main-content {
+			width: min(1152px, calc(100% - 56px));
+			margin: 0 auto;
+			padding: 43px 0 28px;
+		}
+
+		.page-heading {
+			display: flex;
+			align-items: flex-end;
+			justify-content: space-between;
+			gap: 24px;
+			margin-bottom: 27px;
+		}
+
+		.eyebrow {
+			margin: 0 0 11px;
+			color: #7b847b;
+			font-size: 10px;
+			font-weight: 800;
+			letter-spacing: 1.15px;
+		}
+
+		h1,
+		h2,
+		p {
+			margin-top: 0;
+		}
+
+		h1 {
+			margin-bottom: 8px;
+			font-family: Georgia, "Times New Roman", serif;
+			font-size: 34px;
+			font-weight: 500;
+			line-height: 1.15;
+		}
+
+		.page-subtitle {
+			margin: 0;
+			color: var(--muted);
+			font-size: 14px;
+			line-height: 1.5;
+		}
+
+		.primary-button,
+		.secondary-button {
+			min-height: 41px;
+			padding: 0 16px;
+			border: 1px solid transparent;
+			border-radius: 5px;
+			font-size: 13px;
+			font-weight: 700;
+		}
+
+		.primary-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 8px;
+			background: var(--green);
+			color: white;
+			box-shadow: 0 2px 3px rgba(34, 82, 56, .12);
+		}
+
+		.primary-button:hover {
+			background: var(--green-dark);
+		}
+
+		.primary-button span {
+			font-size: 19px;
+			font-weight: 400;
+			line-height: 12px;
+		}
+
+		.secondary-button {
+			border-color: #dfe4dd;
+			background: white;
+			color: #505a51;
+		}
+
+		.secondary-button:hover {
+			background: #f6f8f5;
+		}
+
+		.summary-grid {
+			display: grid;
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			gap: 14px;
+			margin-bottom: 24px;
+		}
+
+		.summary-card {
+			min-height: 135px;
+			padding: 17px 18px 15px;
+			border: 1px solid #e8ece6;
+			border-radius: 6px;
+			background: var(--paper);
+			box-shadow: 0 2px 7px rgba(35, 48, 38, .025);
+		}
+
+		.summary-label {
+			color: #667067;
+			font-size: 12px;
+			font-weight: 600;
+		}
+
+		.summary-value {
+			margin: 13px 0 3px;
+			font-size: 25px;
+			font-weight: 700;
+			font-variant-numeric: tabular-nums;
+			line-height: 1;
+		}
+
+		.summary-note {
+			margin: 0;
+			color: #879087;
+			font-size: 11px;
+			line-height: 1.4;
+		}
+
+		.inventory-panel {
+			overflow: hidden;
+			border: 1px solid #e5e9e3;
+			border-radius: 7px;
+			background: var(--paper);
+			box-shadow: 0 3px 12px rgba(35, 48, 38, .035);
+		}
+
+		.panel-heading {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 16px;
+			padding: 21px 22px 17px;
+		}
+
+		.panel-heading h2 {
+			margin: 0 0 5px;
+			font-size: 17px;
+			line-height: 1.2;
+		}
+
+		.panel-heading p {
+			margin: 0;
+			color: var(--muted);
+			font-size: 12px;
+		}
+
+		.toolbar {
+			display: flex;
+			min-height: 61px;
+			align-items: center;
+			justify-content: space-between;
+			gap: 14px;
+			padding: 11px 22px;
+			border-top: 1px solid #eff1ed;
+			border-bottom: 1px solid #e8ece6;
+			background: #fcfdfb;
+		}
+
+		.filter-controls {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+		}
+
+		.select-wrap {
+			position: relative;
+		}
+
+		.select-wrap::after {
+			position: absolute;
+			top: 13px;
+			right: 11px;
+			width: 6px;
+			height: 6px;
+			border-right: 1.5px solid #7f887f;
+			border-bottom: 1.5px solid #7f887f;
+			content: "";
+			pointer-events: none;
+			transform: rotate(45deg);
+		}
+
+		.select-wrap select {
+			min-width: 145px;
+			height: 36px;
+			padding: 0 29px 0 10px;
+			appearance: none;
+			border: 1px solid #e1e6df;
+			border-radius: 4px;
+			background: #fff;
+			color: #505a51;
+			font-size: 11px;
+		}
+
+		.status-select select {
+			min-width: 152px;
+		}
+
+		.table-wrap {
+			overflow-x: auto;
+		}
+
+		table {
+			width: 100%;
+			border-collapse: collapse;
+			text-align: left;
+		}
+
+		thead {
+			background: #fafbf9;
+		}
+
+		th {
+			height: 39px;
+			padding: 0 14px;
+			border-bottom: 1px solid #edf0eb;
+			color: #858d85;
+			font-size: 10px;
+			font-weight: 700;
+			letter-spacing: .65px;
+			text-transform: uppercase;
+			white-space: nowrap;
+		}
+
+		th:first-child,
+		td:first-child {
+			padding-left: 22px;
+		}
+
+		th:last-child,
+		td:last-child {
+			padding-right: 20px;
+			text-align: right;
+		}
+
+		td {
+			height: 61px;
+			padding: 8px 14px;
+			border-bottom: 1px solid #f0f2ef;
+			color: #525c53;
+			font-size: 12px;
+			white-space: nowrap;
+		}
+
+		tbody tr:last-child td {
+			border-bottom: 0;
+		}
+
+		tbody tr:hover {
+			background: #fcfdfb;
+		}
+
+		.product-cell {
+			display: flex;
+			min-width: 177px;
+			align-items: center;
+			gap: 10px;
+		}
+
+		.product-details {
+			display: flex;
+			flex-direction: column;
+			gap: 3px;
+		}
+
+		.product-details strong {
+			color: #303a32;
+			font-size: 12px;
+			font-weight: 700;
+		}
+
+		.product-details small {
+			color: #929a92;
+			font-size: 10px;
+		}
+
+		.category-text {
+			color: #69736a;
+			font-size: 11px;
+		}
+
+		.stock-cell {
+			width: 130px;
+		}
+
+		.stock-copy {
+			display: flex;
+			align-items: baseline;
+			gap: 4px;
+			margin-bottom: 6px;
+		}
+
+		.stock-copy strong {
+			color: #39443b;
+			font-size: 11px;
+			font-variant-numeric: tabular-nums;
+		}
+
+		.stock-copy span {
+			color: #9aa19a;
+			font-size: 10px;
+		}
+
+		.price-cell {
+			color: #3d473f;
+			font-size: 11px;
+			font-variant-numeric: tabular-nums;
+		}
+
+		.status-pill {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 5px 8px;
+			border-radius: 3px;
+			font-size: 10px;
+			font-weight: 700;
+		}
+
+		.status-pill > span {
+			width: 5px;
+			height: 5px;
+			border-radius: 50%;
+			background: #4b9463;
+		}
+
+		.status-pill.in {
+			background: #edf6ef;
+			color: #39764b;
+		}
+
+		.status-pill.low {
+			background: #fff5e3;
+			color: #9b671c;
+		}
+
+		.status-pill.low > span {
+			background: #c78a2e;
+		}
+
+		.status-pill.out {
+			background: #fdf0ed;
+			color: #a7493d;
+		}
+
+		.status-pill.out > span {
+			background: #c65c4b;
+		}
+
+		.icon-button {
+			display: inline-grid;
+			width: 30px;
+			height: 30px;
+			place-items: center;
+			border: 1px solid transparent;
+			border-radius: 4px;
+			background: transparent;
+			color: #818a81;
+			font-size: 15px;
+		}
+
+		.icon-button:hover {
+			border-color: #e5eae4;
+			background: #f5f8f4;
+			color: var(--green);
+		}
+
+		.row-edit {
+			opacity: .68;
+		}
+
+		tr:hover .row-edit,
+		.row-edit:focus-visible {
+			opacity: 1;
+		}
+
+		.empty-state {
+			display: flex;
+			min-height: 190px;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			gap: 8px;
+			color: #7d877e;
+			text-align: center;
+		}
+
+		.empty-state[hidden] {
+			display: none;
+		}
+
+		.empty-icon {
+			color: #8ca691;
+			font-size: 24px;
+		}
+
+		.empty-state strong {
+			color: #3e4940;
+			font-size: 13px;
+		}
+
+		.empty-state > span:last-child {
+			font-size: 11px;
+		}
+
+		.item-dialog {
+			width: min(440px, calc(100% - 28px));
+			max-height: calc(100% - 32px);
+			padding: 24px;
+			overflow-y: auto;
+			border: 1px solid #e5e9e3;
+			border-radius: 8px;
+			background: #fff;
+			color: var(--ink);
+			box-shadow: 0 22px 70px rgba(20, 31, 23, .2);
+		}
+
+		.item-dialog::backdrop {
+			background: rgba(28, 38, 30, .42);
+		}
+
+		.dialog-heading {
+			display: flex;
+			align-items: flex-start;
+			justify-content: space-between;
+			margin-bottom: 22px;
+		}
+
+		.dialog-heading .eyebrow {
+			margin-bottom: 7px;
+		}
+
+		.dialog-heading h2 {
+			margin: 0;
+			font-family: Georgia, serif;
+			font-size: 23px;
+			font-weight: 500;
+		}
+
+		.close-button {
+			margin: -5px -6px 0 0;
+			font-size: 23px;
+		}
+
+		.field-label {
+			display: block;
+			margin: 0 0 7px;
+			color: #4d584f;
+			font-size: 11px;
+			font-weight: 700;
+		}
+
+		.form-input {
+			width: 100%;
+			height: 39px;
+			margin-bottom: 16px;
+			padding: 0 10px;
+			border: 1px solid #dfe5de;
+			border-radius: 4px;
+			outline: 0;
+			background: #fff;
+			color: #303a32;
+			font-size: 12px;
+		}
+
+		.form-input:focus {
+			border-color: #76a989;
+			box-shadow: 0 0 0 3px rgba(87, 148, 105, .12);
+		}
+
+		.form-row {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 12px;
+		}
+
+		.form-row > div {
+			min-width: 0;
+		}
+
+		.optional {
+			color: #969e96;
+			font-weight: 400;
+		}
+
+		.dialog-actions {
+			display: flex;
+			justify-content: flex-end;
+			gap: 9px;
+			margin-top: 5px;
+			padding-top: 16px;
+			border-top: 1px solid #edf0eb;
+		}
+
+		.visually-hidden {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			padding: 0;
+			overflow: hidden;
+			clip: rect(0, 0, 0, 0);
+			white-space: nowrap;
+			border: 0;
+		}
+
+        [hidden]{display:none!important}.app-nav{display:flex;gap:8px;margin:0 0 27px;border-bottom:1px solid #e5e9e3}.nav-button{background:none;border:0;padding:12px 14px;color:#69736a;font-weight:700;border-bottom:2px solid transparent}.nav-button.active{color:var(--green);border-color:var(--green)}.nav-count{font-size:11px;background:#edf6ef;border-radius:99px;padding:2px 7px}.auth-screen{position:fixed;inset:0;z-index:10;display:grid;place-items:center;padding:24px;background:linear-gradient(140deg,#edf4eb,#f7f8f4 55%,#e9f0e8)}.auth-card{width:min(440px,100%);padding:34px;border:1px solid #e3e9e1;border-radius:12px;background:white;box-shadow:0 18px 60px #263b2b16}.auth-card .brand{margin-bottom:38px}.auth-card h1{margin-bottom:8px}.auth-card form{margin-top:25px}.auth-submit{width:100%}.auth-switch{text-align:center;margin:20px 0 0;color:#69736a;font-size:13px}.auth-switch button{border:0;background:none;color:var(--green);font-weight:700}.auth-error{color:#ad453b;font-size:12px;min-height:18px}.auth-note{font-size:11px;color:#909890;text-align:center;margin:25px 0 0}.billing-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.scan-controls{padding:18px 22px 24px}.scan-entry{display:flex;gap:8px}.scan-entry .form-input{margin:0}.scan-actions{display:flex;align-items:center;gap:12px;margin-top:14px;font-size:12px;color:#69736a}.scan-hint{font-size:11px;color:#879087;margin-top:12px;line-height:1.5}#scanner-video{width:100%;max-height:260px;object-fit:cover;margin-top:14px;border-radius:8px;background:#111}.cart-lines{padding:0 20px;min-height:72px}.cart-line{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #eff1ed;font-size:13px}.cart-line small{display:block;color:#879087;margin-top:3px}.quantity-tools{display:flex;align-items:center;gap:7px}.quantity-tools button{width:27px;height:27px;border:1px solid #e1e6df;background:#fff;border-radius:4px}.bill-footer{padding:16px 20px 20px;border-top:1px solid #e8ece6}.bill-footer>div{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;color:#647064}.bill-footer strong{font-size:22px;color:#202923}.bill-footer .primary-button{width:100%}.cart-empty{padding:25px 0;text-align:center;color:#879087;font-size:13px}.sales-list{display:grid;gap:10px}.sale-card{padding:17px 20px;border:1px solid #e5e9e3;border-radius:7px;background:#fff}.sale-top{display:flex;justify-content:space-between;font-weight:700}.sale-card p{margin:8px 0 0;color:#788178;font-size:12px}.sales-empty{padding:45px;text-align:center;background:white;border:1px solid #e5e9e3;border-radius:7px;color:#788178}
+
+		@media (max-width: 760px) {.billing-grid{grid-template-columns:1fr}.auth-card{padding:26px}.app-nav{margin-bottom:20px}
+			.topbar {
+				height: 60px;
+				padding: 0 20px;
+			}
+
+			.main-content {
+				width: min(100% - 36px, 600px);
+				padding-top: 32px;
+			}
+
+			.page-heading {
+				align-items: flex-start;
+			}
+
+			h1 {
+				font-size: 29px;
+			}
+
+			.summary-grid {
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+				gap: 10px;
+			}
+
+			.summary-card {
+				min-height: 122px;
+				padding: 14px;
+			}
+
+			.toolbar {
+				align-items: stretch;
+				flex-direction: column;
+				padding: 12px 16px;
+			}
+
+			.filter-controls {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+			}
+
+			.select-wrap select,
+			.status-select select {
+				width: 100%;
+				min-width: 0;
+			}
+
+			.panel-heading {
+				padding: 17px 16px 14px;
+			}
+
+			th:first-child,
+			td:first-child {
+				padding-left: 16px;
+			}
+
+			th:last-child,
+			td:last-child {
+				padding-right: 14px;
+			}
+
+		}
+
+		@media (max-width: 480px) {
+			.topbar {
+				padding: 0 16px;
+			}
+
+			.store-label {
+				font-size: 11px;
+			}
+
+			.topbar-right {
+				gap: 11px;
+			}
+
+			.main-content {
+				width: calc(100% - 28px);
+				padding-top: 26px;
+			}
+
+			.page-heading {
+				flex-direction: column;
+				gap: 17px;
+				margin-bottom: 20px;
+			}
+
+			.page-heading .primary-button {
+				width: 100%;
+			}
+
+			h1 {
+				font-size: 27px;
+			}
+
+			.page-subtitle {
+				max-width: 310px;
+				font-size: 13px;
+			}
+
+			.summary-grid {
+				gap: 8px;
+				margin-bottom: 17px;
+			}
+
+			.summary-card {
+				min-height: 115px;
+				padding: 12px;
+			}
+
+			.summary-value {
+				margin-top: 12px;
+				font-size: 23px;
+			}
+
+			.summary-note {
+				font-size: 10px;
+			}
+
+			.panel-heading p {
+				max-width: 225px;
+				line-height: 1.45;
+			}
+
+			.status-select select,
+			.select-wrap select {
+				font-size: 10px;
+			}
+
+			table {
+				min-width: 690px;
+			}
+
+			.item-dialog {
+				padding: 20px;
+			}
+		}
+	</style>
+</head>
+<body>
+	<div class="app-shell">
+		<header class="topbar">
+			<a class="brand" href="#" aria-label="Stockroom home">
+				<span class="brand-mark" aria-hidden="true">S</span>
+				<span>stockroom<span class="brand-dot">.</span></span>
+			</a>
+			<div class="topbar-right"><span class="store-label" id="store-label"><span class="store-indicator"></span> Demo Store</span><button class="secondary-button" id="logout-button" type="button" hidden>Log out</button></div>
+		</header>
+
+		<main class="main-content" id="app-content" hidden>
+            <nav class="app-nav" aria-label="Main navigation"><button class="nav-button active" data-view="inventory-view">Inventory</button><button class="nav-button" data-view="billing-view">Billing <span class="nav-count" id="cart-count">0</span></button><button class="nav-button" data-view="sales-view">Sales history</button></nav>
+            <section id="inventory-view" class="app-view">
+			<section class="page-heading" aria-labelledby="page-title">
+				<div>
+					<h1 id="page-title">Your stock, at a glance.</h1>
+					<p class="page-subtitle">Keep track of what’s on the shelves and what needs a restock.</p>
+				</div>
+				<button class="primary-button" id="add-item-button" type="button">
+					<span aria-hidden="true">+</span>
+					Add product
+				</button>
+			</section>
+
+			<section class="summary-grid" aria-label="Inventory summary">
+				<article class="summary-card">
+					<span class="summary-label">Products</span>
+					<p class="summary-value" id="product-count">0</p>
+					<p class="summary-note">Unique items in your store</p>
+				</article>
+				<article class="summary-card">
+					<span class="summary-label">Units in stock</span>
+					<p class="summary-value" id="unit-count">0</p>
+					<p class="summary-note">Across all products</p>
+				</article>
+				<article class="summary-card">
+					<span class="summary-label">Stock value</span>
+					<p class="summary-value" id="stock-value">₹0</p>
+					<p class="summary-note">Based on selling price</p>
+				</article>
+			</section>
+
+			<section class="inventory-panel" aria-labelledby="inventory-title">
+				<div class="panel-heading">
+					<div>
+						<h2 id="inventory-title">Inventory</h2>
+						<p>Manage products and keep your shelves ready.</p>
+					</div>
+				</div>
+				<div class="toolbar">
+					<div class="filter-controls">
+						<label class="select-wrap">
+							<span class="visually-hidden">Filter by category</span>
+							<select id="category-filter">
+								<option value="all">All categories</option>
+							</select>
+						</label>
+						<label class="select-wrap status-select">
+							<span class="visually-hidden">Filter by stock status</span>
+							<select id="status-filter">
+								<option value="all">Any stock status</option>
+								<option value="in">In stock</option>
+								<option value="low">Low stock</option>
+								<option value="out">Out of stock</option>
+							</select>
+						</label>
+					</div>
+				</div>
+				<div class="table-wrap">
+					<table>
+						<thead>
+							<tr>
+								<th scope="col">Product</th>
+								<th scope="col">Category</th>
+								<th scope="col">Stock level</th>
+								<th scope="col">Unit price</th>
+								<th scope="col">Status</th>
+								<th scope="col" aria-label="Actions"></th>
+							</tr>
+						</thead>
+						<tbody id="inventory-body"></tbody>
+					</table>
+					<div class="empty-state" id="empty-state" hidden>
+						<span class="empty-icon" aria-hidden="true">⌕</span>
+						<strong id="empty-title">No products found</strong>
+						<span id="empty-message">Try another search or add a product to your inventory.</span>
+					</div>
+				</div>
+			</section>
+            </section>
+            <section id="billing-view" class="app-view" hidden><section class="page-heading"><div><p class="eyebrow">CHECKOUT</p><h1>Make a bill.</h1><p class="page-subtitle">Scan product barcodes or enter a product code to add items.</p></div></section>
+              <div class="billing-grid"><section class="inventory-panel scan-panel"><div class="panel-heading"><div><h2>Scan products</h2><p>Use a camera scanner or type a SKU / barcode.</p></div></div><div class="scan-controls"><div class="scan-entry"><input id="scan-code" class="form-input" placeholder="Scan or enter SKU / barcode" autocomplete="off"><button id="add-code" class="primary-button">Add item</button></div><div class="scan-actions"><button id="start-camera" class="secondary-button">Start camera scanner</button><span id="scan-message" role="status"></span></div><video id="scanner-video" playsinline hidden></video><div id="scanner-hint" class="scan-hint">Camera scanning requires a supported browser and HTTPS or localhost. USB scanners that type into the code field work too.</div></div></section>
+              <section class="inventory-panel"><div class="panel-heading"><div><h2>Current bill</h2><p>Stock updates after checkout.</p></div><button id="clear-cart" class="secondary-button">Clear</button></div><div id="cart-lines" class="cart-lines"></div><div class="bill-footer"><div><span>Total</span><strong id="bill-total">₹0</strong></div><button id="checkout-button" class="primary-button" disabled>Complete sale</button></div></section></div>
+            </section>
+            <section id="sales-view" class="app-view" hidden><section class="page-heading"><div><p class="eyebrow">RECORDS</p><h1>Sales history.</h1><p class="page-subtitle">Completed bills for this shopkeeper account.</p></div></section><div id="sales-list" class="sales-list"></div></section>
+		</main>
+	</div>
+    <section id="auth-screen" class="auth-screen"><div class="auth-card"><a class="brand" href="#"><span class="brand-mark">S</span><span>stockroom<span class="brand-dot">.</span></span></a><p class="eyebrow">SHOPKEEPER WORKSPACE</p><h1 id="auth-title">Welcome back.</h1><p class="page-subtitle" id="auth-subtitle">Log in to manage your store.</p><form id="auth-form"><div id="signup-only" hidden><label class="field-label" for="auth-store">Store name</label><input class="form-input" id="auth-store" required maxlength="60" placeholder="e.g. General Store"></div><label class="field-label" for="auth-email">Email</label><input class="form-input" id="auth-email" type="email" required autocomplete="username" placeholder="you@example.com"><label class="field-label" for="auth-password">Password</label><input class="form-input" id="auth-password" type="password" required minlength="6" autocomplete="current-password" placeholder="At least 6 characters"><p id="auth-error" class="auth-error" role="alert"></p><button class="primary-button auth-submit" id="auth-submit">Log in</button></form><p class="auth-switch" id="auth-switch">New to Stockroom? <button type="button" id="toggle-auth">Create an account</button></p><p class="auth-note">This standalone demo saves accounts and store data on this device only.</p></div></section>
+
+	<dialog class="item-dialog" id="item-dialog" aria-labelledby="dialog-title">
+		<form id="item-form">
+			<div class="dialog-heading">
+				<div>
+					<p class="eyebrow">INVENTORY</p>
+					<h2 id="dialog-title">Add a product</h2>
+				</div>
+				<button class="icon-button close-button" id="close-dialog" type="button" aria-label="Close dialog">×</button>
+			</div>
+			<input id="item-id" type="hidden">
+			<label class="field-label" for="item-name">Product name</label>
+			<input
+				class="form-input"
+				id="item-name"
+				name="name"
+				required
+				maxlength="60"
+				placeholder="e.g. Basmati rice"
+			>
+			<div class="form-row">
+				<div>
+					<label class="field-label" for="item-category">Category</label>
+					<select class="form-input" id="item-category" name="category" required>
+						<option value="Groceries">Groceries</option>
+						<option value="Dairy">Dairy</option>
+						<option value="Snacks">Snacks</option>
+						<option value="Beverages">Beverages</option>
+						<option value="Household">Household</option>
+						<option value="Personal care">Personal care</option>
+						<option value="Other">Other</option>
+					</select>
+				</div>
+				<div>
+					<label class="field-label" for="item-sku">
+						SKU <span class="optional">(optional)</span>
+					</label>
+					<input
+						class="form-input"
+						id="item-sku"
+						name="sku"
+						maxlength="24"
+						placeholder="e.g. GRO-001"
+					>
+				</div>
+			</div>
+			<div class="form-row">
+				<div>
+					<label class="field-label" for="item-quantity">Quantity</label>
+					<input
+						class="form-input"
+						id="item-quantity"
+						name="quantity"
+						type="number"
+						min="0"
+						step="1"
+						required
+						value="0"
+					>
+				</div>
+				<div>
+					<label class="field-label" for="item-reorder">Reorder at</label>
+					<input
+						class="form-input"
+						id="item-reorder"
+						name="reorder"
+						type="number"
+						min="0"
+						step="1"
+						required
+						value="5"
+					>
+				</div>
+			</div>
+			<label class="field-label" for="item-price">Unit selling price (₹)</label>
+			<input
+				class="form-input"
+				id="item-price"
+				name="price"
+				type="number"
+				min="0"
+				step="0.01"
+				required
+				placeholder="0.00"
+			>
+			<div class="dialog-actions">
+				<button class="secondary-button" id="cancel-dialog" type="button">
+					Cancel
+				</button>
+				<button class="primary-button" type="submit" id="save-item-button">
+					Save product
+				</button>
+			</div>
+		</form>
+	</dialog>
+
+<script>
+const DB='stockroom-users-v2', SESSION='stockroom-session-v2';
+const starter=[{id:'rice',name:'Basmati Rice',sku:'GRO-001',category:'Groceries',quantity:24,reorder:8,price:145},{id:'milk',name:'Full Cream Milk',sku:'DAI-004',category:'Dairy',quantity:6,reorder:10,price:32},{id:'soap',name:'Neem Bath Soap',sku:'PER-012',category:'Personal care',quantity:18,reorder:6,price:38},{id:'tea',name:'Assam Tea, 250g',sku:'GRO-008',category:'Groceries',quantity:3,reorder:6,price:120},{id:'biscuits',name:'Butter Biscuits',sku:'SNK-021',category:'Snacks',quantity:32,reorder:12,price:10},{id:'oil',name:'Sunflower Oil, 1L',sku:'GRO-014',category:'Groceries',quantity:0,reorder:5,price:155},{id:'juice',name:'Mango Juice, 1L',sku:'BEV-006',category:'Beverages',quantity:9,reorder:8,price:85},{id:'detergent',name:'Laundry Detergent',sku:'HOM-003',category:'Household',quantity:11,reorder:5,price:95}];
+let users=read(DB,[]), user=null, items=[], sales=[], cart=[]; const $=id=>document.getElementById(id);
+const currency=new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:2}), nf=new Intl.NumberFormat('en-IN');
+function read(k,f){try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}} function write(k,v){localStorage.setItem(k,JSON.stringify(v))} function key(k){return `stockroom:${user.email}:${k}`}
+function setAuth(signup){$('auth-title').textContent=signup?'Create your store.':'Welcome back.';$('auth-subtitle').textContent=signup?'Start tracking stock and checkout in one place.':'Log in to manage your store.';$('signup-only').hidden=!signup;$('auth-store').required=signup;$('auth-submit').textContent=signup?'Create account':'Log in';$('auth-switch').innerHTML=signup?'Already have an account? <button type="button" id="toggle-auth">Log in</button>':'New to Stockroom? <button type="button" id="toggle-auth">Create an account</button>'; $('toggle-auth').onclick=()=>setAuth(!signup);$('auth-error').textContent=''}
+function start(u){user=u;items=read(`stockroom:${u.email}:items`,null)||structuredClone(starter);sales=read(`stockroom:${u.email}:sales`,[]);$('store-label').innerHTML='<span class="store-indicator"></span> '+escapeHtml(u.store);$('app-content').hidden=false;$('auth-screen').hidden=true;$('logout-button').hidden=false;render()}
+function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+$('auth-form').onsubmit=e=>{e.preventDefault();const email=$('auth-email').value.trim().toLowerCase(),password=$('auth-password').value;if($('auth-store').required){if(users.some(x=>x.email===email))return $('auth-error').textContent='An account with this email already exists.';user={email,password,store:$('auth-store').value.trim()};users.push(user);write(DB,users);write(`stockroom:${email}:items`,starter);write(`stockroom:${email}:sales`,[]);write(SESSION,email);start(user)}else{const found=users.find(x=>x.email===email&&x.password===password);if(!found)return $('auth-error').textContent='Email or password is incorrect.';write(SESSION,email);start(found)}};
+$('logout-button').onclick=()=>{localStorage.removeItem(SESSION);user=null;$('app-content').hidden=true;$('auth-screen').hidden=false;$('logout-button').hidden=true;$('auth-password').value='';setAuth(false)};
+function persist(){write(key('items'),items);write(key('sales'),sales)} function statusFor(i){return i.quantity===0?'out':i.quantity<=i.reorder?'low':'in'}
+function render(){const categories=[...new Set(items.map(i=>i.category))].sort();const selected=$('category-filter').value;$('category-filter').replaceChildren(new Option('All categories','all'),...categories.map(c=>new Option(c,c)));$('category-filter').value=categories.includes(selected)?selected:'all';$('product-count').textContent=nf.format(items.length);$('unit-count').textContent=nf.format(items.reduce((a,i)=>a+i.quantity,0));$('stock-value').textContent=currency.format(items.reduce((a,i)=>a+i.quantity*i.price,0));const list=items.filter(i=>($('category-filter').value==='all'||i.category===$('category-filter').value)&&($('status-filter').value==='all'||statusFor(i)===$('status-filter').value)).sort((a,b)=>a.name.localeCompare(b.name));$('inventory-body').replaceChildren(...list.map(i=>{const tr=document.createElement('tr'),st=statusFor(i),lbl={in:'In stock',low:'Low stock',out:'Out of stock'}[st];tr.innerHTML=`<td><div class="product-cell"><span class="product-details"><strong>${escapeHtml(i.name)}</strong><small>${escapeHtml(i.sku||'No SKU')}</small></span></div></td><td><span class="category-text">${escapeHtml(i.category)}</span></td><td><div class="stock-cell"><div class="stock-copy"><strong>${i.quantity}</strong><span> units</span></div></div></td><td class="price-cell">${currency.format(i.price)}</td><td><span class="status-pill ${st}"><span></span>${lbl}</span></td><td><button class="icon-button row-edit" data-edit="${escapeHtml(i.id)}">✎</button></td>`;return tr}));$('empty-state').hidden=list.length>0;$('empty-title').textContent=items.length?'No products found':'Your inventory is empty';$('empty-message').textContent=items.length?'Try another filter.':'Add your first product to start tracking stock.';renderCart();renderSales()}
+function openDialog(i){$('item-form').reset();$('item-id').value=i?.id||'';$('dialog-title').textContent=i?'Edit product':'Add a product';$('save-item-button').textContent=i?'Save changes':'Save product';$('item-name').value=i?.name||'';$('item-sku').value=i?.sku||'';$('item-category').value=i?.category||'Groceries';$('item-quantity').value=i?.quantity??0;$('item-reorder').value=i?.reorder??5;$('item-price').value=i?.price??'';$('item-dialog').showModal()}
+$('add-item-button').onclick=()=>openDialog();$('close-dialog').onclick=$('cancel-dialog').onclick=()=>$('item-dialog').close();$('item-form').onsubmit=e=>{e.preventDefault();const id=$('item-id').value,product={id:id||'item-'+Date.now(),name:$('item-name').value.trim(),sku:$('item-sku').value.trim(),category:$('item-category').value,quantity:+$('item-quantity').value,reorder:+$('item-reorder').value,price:+$('item-price').value};if(id)items=items.map(i=>i.id===id?product:i);else items.push(product);persist();$('item-dialog').close();render()};$('inventory-body').onclick=e=>{const b=e.target.closest('[data-edit]');if(b)openDialog(items.find(i=>i.id===b.dataset.edit))};$('category-filter').onchange=$('status-filter').onchange=render;
+document.querySelectorAll('.nav-button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.nav-button').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.app-view').forEach(x=>x.hidden=x.id!==b.dataset.view);if(b.dataset.view==='billing-view')$('scan-code').focus()});
+function addToCart(code){const q=code.trim().toLowerCase();if(!q)return;const item=items.find(i=>[i.sku,i.id,i.barcode,i.name].some(v=>v&&String(v).toLowerCase()===q));if(!item){$('scan-message').textContent='No product matches that code.';return}const line=cart.find(x=>x.id===item.id);if((line?.qty||0)>=item.quantity){$('scan-message').textContent=`${item.name} has no more stock available.`;return}if(line)line.qty++;else cart.push({id:item.id,qty:1});$('scan-code').value='';$('scan-message').textContent=`Added ${item.name}`;renderCart()}
+$('add-code').onclick=()=>addToCart($('scan-code').value);$('scan-code').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();addToCart(e.target.value)}};
+function renderCart(){$('cart-count').textContent=cart.reduce((a,x)=>a+x.qty,0);$('cart-lines').innerHTML=cart.length?cart.map(line=>{const i=items.find(x=>x.id===line.id);return `<div class="cart-line"><div><strong>${escapeHtml(i.name)}</strong><small>${currency.format(i.price)} each</small></div><div class="quantity-tools"><button data-cart="minus" data-id="${i.id}">−</button><span>${line.qty}</span><button data-cart="plus" data-id="${i.id}">+</button></div><strong>${currency.format(i.price*line.qty)}</strong></div>`}).join(''):'<div class="cart-empty">Scan a product to start a bill.</div>';const total=cart.reduce((a,x)=>a+items.find(i=>i.id===x.id).price*x.qty,0);$('bill-total').textContent=currency.format(total);$('checkout-button').disabled=!cart.length}
+$('cart-lines').onclick=e=>{const b=e.target.closest('[data-cart]');if(!b)return;const line=cart.find(x=>x.id===b.dataset.id),item=items.find(x=>x.id===b.dataset.id);if(b.dataset.cart==='plus'&&line.qty<item.quantity)line.qty++;if(b.dataset.cart==='minus')line.qty--;cart=cart.filter(x=>x.qty>0);renderCart()};$('clear-cart').onclick=()=>{cart=[];renderCart()};$('checkout-button').onclick=()=>{if(!cart.length)return;for(const l of cart){const i=items.find(x=>x.id===l.id);if(i.quantity<l.qty){$('scan-message').textContent=`Insufficient stock: ${i.name}`;return}}const lines=cart.map(l=>{const i=items.find(x=>x.id===l.id);i.quantity-=l.qty;return{name:i.name,sku:i.sku,qty:l.qty,price:i.price}});sales.unshift({id:Date.now(),at:new Date().toISOString(),lines,total:lines.reduce((a,l)=>a+l.qty*l.price,0)});cart=[];persist();render();$('scan-message').textContent='Sale complete. Inventory updated.'};
+function renderSales(){$('sales-list').innerHTML=sales.length?sales.map(s=>`<article class="sale-card"><div class="sale-top"><span>Bill #${String(s.id).slice(-6)}</span><strong>${currency.format(s.total)}</strong></div><p>${new Date(s.at).toLocaleString()} · ${s.lines.reduce((n,l)=>n+l.qty,0)} items · ${s.lines.map(l=>`${escapeHtml(l.name)} × ${l.qty}`).join(', ')}</p></article>`).join(''):'<div class="sales-empty">No completed sales yet. Bills will appear here.</div>'}
+let stream=null,lastScanned='',lastScannedAt=0; $('start-camera').onclick=async()=>{if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;$('scanner-video').hidden=true;$('scan-message').textContent='Camera scanner stopped.';return}if(!('BarcodeDetector'in window)){ $('scan-message').textContent='Camera barcode scanning is not supported here. Use a USB scanner or enter the SKU.';return}try{const detector=new BarcodeDetector();stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});$('scanner-video').srcObject=stream;$('scanner-video').hidden=false;await $('scanner-video').play();$('scan-message').textContent='Point the camera at a product barcode.';const tick=async()=>{if(!stream)return;try{const codes=await detector.detect($('scanner-video'));if(codes.length){const code=codes[0].rawValue,now=Date.now();if(code!==lastScanned||now-lastScannedAt>1800){lastScanned=code;lastScannedAt=now;addToCart(code)}}}catch{}requestAnimationFrame(tick)};tick()}catch{$('scan-message').textContent='Camera access is unavailable. Enter a SKU or use a USB scanner.'}};
+setAuth(false);const session=localStorage.getItem(SESSION);if(session){const found=users.find(x=>x.email===session);if(found)start(found)}
+</script>
+</body>
+</html>
