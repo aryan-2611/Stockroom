@@ -963,28 +963,445 @@
 	</dialog>
 
 <script>
-const DB='stockroom-users-v2', SESSION='stockroom-session-v2';
-const starter=[{id:'rice',name:'Basmati Rice',sku:'GRO-001',category:'Groceries',quantity:24,reorder:8,price:145},{id:'milk',name:'Full Cream Milk',sku:'DAI-004',category:'Dairy',quantity:6,reorder:10,price:32},{id:'soap',name:'Neem Bath Soap',sku:'PER-012',category:'Personal care',quantity:18,reorder:6,price:38},{id:'tea',name:'Assam Tea, 250g',sku:'GRO-008',category:'Groceries',quantity:3,reorder:6,price:120},{id:'biscuits',name:'Butter Biscuits',sku:'SNK-021',category:'Snacks',quantity:32,reorder:12,price:10},{id:'oil',name:'Sunflower Oil, 1L',sku:'GRO-014',category:'Groceries',quantity:0,reorder:5,price:155},{id:'juice',name:'Mango Juice, 1L',sku:'BEV-006',category:'Beverages',quantity:9,reorder:8,price:85},{id:'detergent',name:'Laundry Detergent',sku:'HOM-003',category:'Household',quantity:11,reorder:5,price:95}];
-let users=read(DB,[]), user=null, items=[], sales=[], cart=[]; const $=id=>document.getElementById(id);
-const currency=new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:2}), nf=new Intl.NumberFormat('en-IN');
-function read(k,f){try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}} function write(k,v){localStorage.setItem(k,JSON.stringify(v))} function key(k){return `stockroom:${user.email}:${k}`}
-function setAuth(signup){$('auth-title').textContent=signup?'Create your store.':'Welcome back.';$('auth-subtitle').textContent=signup?'Start tracking stock and checkout in one place.':'Log in to manage your store.';$('signup-only').hidden=!signup;$('auth-store').required=signup;$('auth-submit').textContent=signup?'Create account':'Log in';$('auth-switch').innerHTML=signup?'Already have an account? <button type="button" id="toggle-auth">Log in</button>':'New to Stockroom? <button type="button" id="toggle-auth">Create an account</button>'; $('toggle-auth').onclick=()=>setAuth(!signup);$('auth-error').textContent=''}
-function start(u){user=u;items=read(`stockroom:${u.email}:items`,null)||structuredClone(starter);sales=read(`stockroom:${u.email}:sales`,[]);$('store-label').innerHTML='<span class="store-indicator"></span> '+escapeHtml(u.store);$('app-content').hidden=false;$('auth-screen').hidden=true;$('logout-button').hidden=false;render()}
-function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-$('auth-form').onsubmit=e=>{e.preventDefault();const email=$('auth-email').value.trim().toLowerCase(),password=$('auth-password').value;if($('auth-store').required){if(users.some(x=>x.email===email))return $('auth-error').textContent='An account with this email already exists.';user={email,password,store:$('auth-store').value.trim()};users.push(user);write(DB,users);write(`stockroom:${email}:items`,starter);write(`stockroom:${email}:sales`,[]);write(SESSION,email);start(user)}else{const found=users.find(x=>x.email===email&&x.password===password);if(!found)return $('auth-error').textContent='Email or password is incorrect.';write(SESSION,email);start(found)}};
-$('logout-button').onclick=()=>{localStorage.removeItem(SESSION);user=null;$('app-content').hidden=true;$('auth-screen').hidden=false;$('logout-button').hidden=true;$('auth-password').value='';setAuth(false)};
-function persist(){write(key('items'),items);write(key('sales'),sales)} function statusFor(i){return i.quantity===0?'out':i.quantity<=i.reorder?'low':'in'}
-function render(){const categories=[...new Set(items.map(i=>i.category))].sort();const selected=$('category-filter').value;$('category-filter').replaceChildren(new Option('All categories','all'),...categories.map(c=>new Option(c,c)));$('category-filter').value=categories.includes(selected)?selected:'all';$('product-count').textContent=nf.format(items.length);$('unit-count').textContent=nf.format(items.reduce((a,i)=>a+i.quantity,0));$('stock-value').textContent=currency.format(items.reduce((a,i)=>a+i.quantity*i.price,0));const list=items.filter(i=>($('category-filter').value==='all'||i.category===$('category-filter').value)&&($('status-filter').value==='all'||statusFor(i)===$('status-filter').value)).sort((a,b)=>a.name.localeCompare(b.name));$('inventory-body').replaceChildren(...list.map(i=>{const tr=document.createElement('tr'),st=statusFor(i),lbl={in:'In stock',low:'Low stock',out:'Out of stock'}[st];tr.innerHTML=`<td><div class="product-cell"><span class="product-details"><strong>${escapeHtml(i.name)}</strong><small>${escapeHtml(i.sku||'No SKU')}</small></span></div></td><td><span class="category-text">${escapeHtml(i.category)}</span></td><td><div class="stock-cell"><div class="stock-copy"><strong>${i.quantity}</strong><span> units</span></div></div></td><td class="price-cell">${currency.format(i.price)}</td><td><span class="status-pill ${st}"><span></span>${lbl}</span></td><td><button class="icon-button row-edit" data-edit="${escapeHtml(i.id)}">✎</button></td>`;return tr}));$('empty-state').hidden=list.length>0;$('empty-title').textContent=items.length?'No products found':'Your inventory is empty';$('empty-message').textContent=items.length?'Try another filter.':'Add your first product to start tracking stock.';renderCart();renderSales()}
-function openDialog(i){$('item-form').reset();$('item-id').value=i?.id||'';$('dialog-title').textContent=i?'Edit product':'Add a product';$('save-item-button').textContent=i?'Save changes':'Save product';$('item-name').value=i?.name||'';$('item-sku').value=i?.sku||'';$('item-category').value=i?.category||'Groceries';$('item-quantity').value=i?.quantity??0;$('item-reorder').value=i?.reorder??5;$('item-price').value=i?.price??'';$('item-dialog').showModal()}
-$('add-item-button').onclick=()=>openDialog();$('close-dialog').onclick=$('cancel-dialog').onclick=()=>$('item-dialog').close();$('item-form').onsubmit=e=>{e.preventDefault();const id=$('item-id').value,product={id:id||'item-'+Date.now(),name:$('item-name').value.trim(),sku:$('item-sku').value.trim(),category:$('item-category').value,quantity:+$('item-quantity').value,reorder:+$('item-reorder').value,price:+$('item-price').value};if(id)items=items.map(i=>i.id===id?product:i);else items.push(product);persist();$('item-dialog').close();render()};$('inventory-body').onclick=e=>{const b=e.target.closest('[data-edit]');if(b)openDialog(items.find(i=>i.id===b.dataset.edit))};$('category-filter').onchange=$('status-filter').onchange=render;
-document.querySelectorAll('.nav-button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.nav-button').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.app-view').forEach(x=>x.hidden=x.id!==b.dataset.view);if(b.dataset.view==='billing-view')$('scan-code').focus()});
-function addToCart(code){const q=code.trim().toLowerCase();if(!q)return;const item=items.find(i=>[i.sku,i.id,i.barcode,i.name].some(v=>v&&String(v).toLowerCase()===q));if(!item){$('scan-message').textContent='No product matches that code.';return}const line=cart.find(x=>x.id===item.id);if((line?.qty||0)>=item.quantity){$('scan-message').textContent=`${item.name} has no more stock available.`;return}if(line)line.qty++;else cart.push({id:item.id,qty:1});$('scan-code').value='';$('scan-message').textContent=`Added ${item.name}`;renderCart()}
-$('add-code').onclick=()=>addToCart($('scan-code').value);$('scan-code').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();addToCart(e.target.value)}};
-function renderCart(){$('cart-count').textContent=cart.reduce((a,x)=>a+x.qty,0);$('cart-lines').innerHTML=cart.length?cart.map(line=>{const i=items.find(x=>x.id===line.id);return `<div class="cart-line"><div><strong>${escapeHtml(i.name)}</strong><small>${currency.format(i.price)} each</small></div><div class="quantity-tools"><button data-cart="minus" data-id="${i.id}">−</button><span>${line.qty}</span><button data-cart="plus" data-id="${i.id}">+</button></div><strong>${currency.format(i.price*line.qty)}</strong></div>`}).join(''):'<div class="cart-empty">Scan a product to start a bill.</div>';const total=cart.reduce((a,x)=>a+items.find(i=>i.id===x.id).price*x.qty,0);$('bill-total').textContent=currency.format(total);$('checkout-button').disabled=!cart.length}
-$('cart-lines').onclick=e=>{const b=e.target.closest('[data-cart]');if(!b)return;const line=cart.find(x=>x.id===b.dataset.id),item=items.find(x=>x.id===b.dataset.id);if(b.dataset.cart==='plus'&&line.qty<item.quantity)line.qty++;if(b.dataset.cart==='minus')line.qty--;cart=cart.filter(x=>x.qty>0);renderCart()};$('clear-cart').onclick=()=>{cart=[];renderCart()};$('checkout-button').onclick=()=>{if(!cart.length)return;for(const l of cart){const i=items.find(x=>x.id===l.id);if(i.quantity<l.qty){$('scan-message').textContent=`Insufficient stock: ${i.name}`;return}}const lines=cart.map(l=>{const i=items.find(x=>x.id===l.id);i.quantity-=l.qty;return{name:i.name,sku:i.sku,qty:l.qty,price:i.price}});sales.unshift({id:Date.now(),at:new Date().toISOString(),lines,total:lines.reduce((a,l)=>a+l.qty*l.price,0)});cart=[];persist();render();$('scan-message').textContent='Sale complete. Inventory updated.'};
-function renderSales(){$('sales-list').innerHTML=sales.length?sales.map(s=>`<article class="sale-card"><div class="sale-top"><span>Bill #${String(s.id).slice(-6)}</span><strong>${currency.format(s.total)}</strong></div><p>${new Date(s.at).toLocaleString()} · ${s.lines.reduce((n,l)=>n+l.qty,0)} items · ${s.lines.map(l=>`${escapeHtml(l.name)} × ${l.qty}`).join(', ')}</p></article>`).join(''):'<div class="sales-empty">No completed sales yet. Bills will appear here.</div>'}
-let stream=null,lastScanned='',lastScannedAt=0; $('start-camera').onclick=async()=>{if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;$('scanner-video').hidden=true;$('scan-message').textContent='Camera scanner stopped.';return}if(!('BarcodeDetector'in window)){ $('scan-message').textContent='Camera barcode scanning is not supported here. Use a USB scanner or enter the SKU.';return}try{const detector=new BarcodeDetector();stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});$('scanner-video').srcObject=stream;$('scanner-video').hidden=false;await $('scanner-video').play();$('scan-message').textContent='Point the camera at a product barcode.';const tick=async()=>{if(!stream)return;try{const codes=await detector.detect($('scanner-video'));if(codes.length){const code=codes[0].rawValue,now=Date.now();if(code!==lastScanned||now-lastScannedAt>1800){lastScanned=code;lastScannedAt=now;addToCart(code)}}}catch{}requestAnimationFrame(tick)};tick()}catch{$('scan-message').textContent='Camera access is unavailable. Enter a SKU or use a USB scanner.'}};
-setAuth(false);const session=localStorage.getItem(SESSION);if(session){const found=users.find(x=>x.email===session);if(found)start(found)}
+const DB = 'stockroom-users-v2';
+const SESSION = 'stockroom-session-v2';
+
+const starter = [
+  { id: 'rice', name: 'Basmati Rice', sku: 'GRO-001', category: 'Groceries', quantity: 24, reorder: 8, price: 145 },
+  { id: 'milk', name: 'Full Cream Milk', sku: 'DAI-004', category: 'Dairy', quantity: 6, reorder: 10, price: 32 },
+  { id: 'soap', name: 'Neem Bath Soap', sku: 'PER-012', category: 'Personal care', quantity: 18, reorder: 6, price: 38 },
+  { id: 'tea', name: 'Assam Tea, 250g', sku: 'GRO-008', category: 'Groceries', quantity: 3, reorder: 6, price: 120 },
+  { id: 'biscuits', name: 'Butter Biscuits', sku: 'SNK-021', category: 'Snacks', quantity: 32, reorder: 12, price: 10 },
+  { id: 'oil', name: 'Sunflower Oil, 1L', sku: 'GRO-014', category: 'Groceries', quantity: 0, reorder: 5, price: 155 },
+  { id: 'juice', name: 'Mango Juice, 1L', sku: 'BEV-006', category: 'Beverages', quantity: 9, reorder: 8, price: 85 },
+  { id: 'detergent', name: 'Laundry Detergent', sku: 'HOM-003', category: 'Household', quantity: 11, reorder: 5, price: 95 }
+];
+
+let users = read(DB, []);
+let user = null;
+let items = [];
+let sales = [];
+let cart = [];
+
+const $ = id => document.getElementById(id);
+
+const currency = new Intl.NumberFormat('en-IN', {
+  style: 'currency',
+  currency: 'INR',
+  maximumFractionDigits: 2
+});
+const nf = new Intl.NumberFormat('en-IN');
+
+
+function read(k, f) {
+  try {
+    return JSON.parse(localStorage.getItem(k)) ?? f;
+  } catch {
+    return f;
+  }
+}
+
+function write(k, v) {
+  localStorage.setItem(k, JSON.stringify(v));
+}
+
+function key(k) {
+  return `stockroom:${user.email}:${k}`;
+}
+
+function escapeHtml(v) {
+  return String(v).replace(/[&<>"']/g, c => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[c]));
+}
+
+
+// auth 
+
+function setAuth(signup) {
+  $('auth-title').textContent = signup ? 'Create your store.' : 'Welcome back.';
+  $('auth-subtitle').textContent = signup
+    ? 'Start tracking stock and checkout in one place.'
+    : 'Log in to manage your store.';
+  $('signup-only').hidden = !signup;
+  $('auth-store').required = signup;
+  $('auth-submit').textContent = signup ? 'Create account' : 'Log in';
+  $('auth-switch').innerHTML = signup
+    ? 'Already have an account? <button type="button" id="toggle-auth">Log in</button>'
+    : 'New to Stockroom? <button type="button" id="toggle-auth">Create an account</button>';
+  $('toggle-auth').onclick = () => setAuth(!signup);
+  $('auth-error').textContent = '';
+}
+
+function start(u) {
+  user = u;
+  items = read(`stockroom:${u.email}:items`, null) || structuredClone(starter);
+  sales = read(`stockroom:${u.email}:sales`, []);
+  $('store-label').innerHTML = '<span class="store-indicator"></span> ' + escapeHtml(u.store);
+  $('app-content').hidden = false;
+  $('auth-screen').hidden = true;
+  $('logout-button').hidden = false;
+  render();
+}
+
+$('auth-form').onsubmit = e => {
+  e.preventDefault();
+  const email = $('auth-email').value.trim().toLowerCase();
+  const password = $('auth-password').value;
+
+  if ($('auth-store').required) {
+    if (users.some(x => x.email === email)) {
+      return $('auth-error').textContent = 'An account with this email already exists.';
+    }
+    user = { email, password, store: $('auth-store').value.trim() };
+    users.push(user);
+    write(DB, users);
+    write(`stockroom:${email}:items`, starter);
+    write(`stockroom:${email}:sales`, []);
+    write(SESSION, email);
+    start(user);
+  } else {
+    const found = users.find(x => x.email === email && x.password === password);
+    if (!found) {
+      return $('auth-error').textContent = 'Email or password is incorrect.';
+    }
+    write(SESSION, email);
+    start(found);
+  }
+};
+
+$('logout-button').onclick = () => {
+  localStorage.removeItem(SESSION);
+  user = null;
+  $('app-content').hidden = true;
+  $('auth-screen').hidden = false;
+  $('logout-button').hidden = true;
+  $('auth-password').value = '';
+  setAuth(false);
+};
+
+
+// Inventory 
+
+function persist() {
+  write(key('items'), items);
+  write(key('sales'), sales);
+}
+
+function statusFor(i) {
+  return i.quantity === 0 ? 'out' : i.quantity <= i.reorder ? 'low' : 'in';
+}
+
+function render() {
+  const categories = [...new Set(items.map(i => i.category))].sort();
+  const selected = $('category-filter').value;
+
+  $('category-filter').replaceChildren(
+    new Option('All categories', 'all'),
+    ...categories.map(c => new Option(c, c))
+  );
+  $('category-filter').value = categories.includes(selected) ? selected : 'all';
+
+  $('product-count').textContent = nf.format(items.length);
+  $('unit-count').textContent = nf.format(items.reduce((a, i) => a + i.quantity, 0));
+  $('stock-value').textContent = currency.format(items.reduce((a, i) => a + i.quantity * i.price, 0));
+
+  const list = items
+    .filter(i =>
+      ($('category-filter').value === 'all' || i.category === $('category-filter').value) &&
+      ($('status-filter').value === 'all' || statusFor(i) === $('status-filter').value)
+    )
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  $('inventory-body').replaceChildren(...list.map(i => {
+    const tr = document.createElement('tr');
+    const st = statusFor(i);
+    const lbl = { in: 'In stock', low: 'Low stock', out: 'Out of stock' }[st];
+
+    tr.innerHTML = `
+      <td>
+        <div class="product-cell">
+          <span class="product-details">
+            <strong>${escapeHtml(i.name)}</strong>
+            <small>${escapeHtml(i.sku || 'No SKU')}</small>
+          </span>
+        </div>
+      </td>
+      <td><span class="category-text">${escapeHtml(i.category)}</span></td>
+      <td>
+        <div class="stock-cell">
+          <div class="stock-copy"><strong>${i.quantity}</strong><span> units</span></div>
+        </div>
+      </td>
+      <td class="price-cell">${currency.format(i.price)}</td>
+      <td><span class="status-pill ${st}"><span></span>${lbl}</span></td>
+      <td><button class="icon-button row-edit" data-edit="${escapeHtml(i.id)}">✎</button></td>`;
+    return tr;
+  }));
+
+  $('empty-state').hidden = list.length > 0;
+  $('empty-title').textContent = items.length ? 'No products found' : 'Your inventory is empty';
+  $('empty-message').textContent = items.length
+    ? 'Try another filter.'
+    : 'Add your first product to start tracking stock.';
+
+  renderCart();
+  renderSales();
+}
+
+function openDialog(i) {
+  $('item-form').reset();
+  $('item-id').value = i?.id || '';
+  $('dialog-title').textContent = i ? 'Edit product' : 'Add a product';
+  $('save-item-button').textContent = i ? 'Save changes' : 'Save product';
+  $('item-name').value = i?.name || '';
+  $('item-sku').value = i?.sku || '';
+  $('item-category').value = i?.category || 'Groceries';
+  $('item-quantity').value = i?.quantity ?? 0;
+  $('item-reorder').value = i?.reorder ?? 5;
+  $('item-price').value = i?.price ?? '';
+  $('item-dialog').showModal();
+}
+
+$('add-item-button').onclick = () => openDialog();
+$('close-dialog').onclick = $('cancel-dialog').onclick = () => $('item-dialog').close();
+
+$('item-form').onsubmit = e => {
+  e.preventDefault();
+  const id = $('item-id').value;
+  const product = {
+    id: id || 'item-' + Date.now(),
+    name: $('item-name').value.trim(),
+    sku: $('item-sku').value.trim(),
+    category: $('item-category').value,
+    quantity: +$('item-quantity').value,
+    reorder: +$('item-reorder').value,
+    price: +$('item-price').value
+  };
+
+  if (id) {
+    items = items.map(i => i.id === id ? product : i);
+  } else {
+    items.push(product);
+  }
+
+  persist();
+  $('item-dialog').close();
+  render();
+};
+
+$('inventory-body').onclick = e => {
+  const b = e.target.closest('[data-edit]');
+  if (b) openDialog(items.find(i => i.id === b.dataset.edit));
+};
+
+$('category-filter').onchange = $('status-filter').onchange = render;
+
+
+// navigation 
+
+document.querySelectorAll('.nav-button').forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll('.nav-button').forEach(x => x.classList.toggle('active', x === b));
+    document.querySelectorAll('.app-view').forEach(x => x.hidden = x.id !== b.dataset.view);
+    if (b.dataset.view === 'billing-view') $('scan-code').focus();
+  };
+});
+
+
+// Billing
+
+function addToCart(code) {
+  const q = code.trim().toLowerCase();
+  if (!q) return;
+
+  const item = items.find(i =>
+    [i.sku, i.id, i.barcode, i.name].some(v => v && String(v).toLowerCase() === q)
+  );
+  if (!item) {
+    $('scan-message').textContent = 'No product matches that code.';
+    return;
+  }
+
+  const line = cart.find(x => x.id === item.id);
+  if ((line?.qty || 0) >= item.quantity) {
+    $('scan-message').textContent = `${item.name} has no more stock available.`;
+    return;
+  }
+
+  if (line) line.qty++;
+  else cart.push({ id: item.id, qty: 1 });
+
+  $('scan-code').value = '';
+  $('scan-message').textContent = `Added ${item.name}`;
+  renderCart();
+}
+
+$('add-code').onclick = () => addToCart($('scan-code').value);
+
+$('scan-code').onkeydown = e => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    addToCart(e.target.value);
+  }
+};
+
+function renderCart() {
+  $('cart-count').textContent = cart.reduce((a, x) => a + x.qty, 0);
+
+  $('cart-lines').innerHTML = cart.length
+    ? cart.map(line => {
+        const i = items.find(x => x.id === line.id);
+        return `
+          <div class="cart-line">
+            <div>
+              <strong>${escapeHtml(i.name)}</strong>
+              <small>${currency.format(i.price)} each</small>
+            </div>
+            <div class="quantity-tools">
+              <button data-cart="minus" data-id="${i.id}">−</button>
+              <span>${line.qty}</span>
+              <button data-cart="plus" data-id="${i.id}">+</button>
+            </div>
+            <strong>${currency.format(i.price * line.qty)}</strong>
+          </div>`;
+      }).join('')
+    : '<div class="cart-empty">Scan a product to start a bill.</div>';
+
+  const total = cart.reduce((a, x) => a + items.find(i => i.id === x.id).price * x.qty, 0);
+  $('bill-total').textContent = currency.format(total);
+  $('checkout-button').disabled = !cart.length;
+}
+
+$('cart-lines').onclick = e => {
+  const b = e.target.closest('[data-cart]');
+  if (!b) return;
+
+  const line = cart.find(x => x.id === b.dataset.id);
+  const item = items.find(x => x.id === b.dataset.id);
+
+  if (b.dataset.cart === 'plus' && line.qty < item.quantity) line.qty++;
+  if (b.dataset.cart === 'minus') line.qty--;
+
+  cart = cart.filter(x => x.qty > 0);
+  renderCart();
+};
+
+$('clear-cart').onclick = () => {
+  cart = [];
+  renderCart();
+};
+
+$('checkout-button').onclick = () => {
+  if (!cart.length) return;
+
+  for (const l of cart) {
+    const i = items.find(x => x.id === l.id);
+    if (i.quantity < l.qty) {
+      $('scan-message').textContent = `Insufficient stock: ${i.name}`;
+      return;
+    }
+  }
+
+  const lines = cart.map(l => {
+    const i = items.find(x => x.id === l.id);
+    i.quantity -= l.qty;
+    return { name: i.name, sku: i.sku, qty: l.qty, price: i.price };
+  });
+
+  sales.unshift({
+    id: Date.now(),
+    at: new Date().toISOString(),
+    lines,
+    total: lines.reduce((a, l) => a + l.qty * l.price, 0)
+  });
+
+  cart = [];
+  persist();
+  render();
+  $('scan-message').textContent = 'Sale complete. Inventory updated.';
+};
+
+function renderSales() {
+  $('sales-list').innerHTML = sales.length
+    ? sales.map(s => `
+        <article class="sale-card">
+          <div class="sale-top">
+            <span>Bill #${String(s.id).slice(-6)}</span>
+            <strong>${currency.format(s.total)}</strong>
+          </div>
+          <p>${new Date(s.at).toLocaleString()} · ${s.lines.reduce((n, l) => n + l.qty, 0)} items · ${s.lines.map(l => `${escapeHtml(l.name)} × ${l.qty}`).join(', ')}</p>
+        </article>`).join('')
+    : '<div class="sales-empty">No completed sales yet. Bills will appear here.</div>';
+}
+
+
+// Camera scanner
+
+let stream = null;
+let lastScanned = '';
+let lastScannedAt = 0;
+
+$('start-camera').onclick = async () => {
+  if (stream) {
+    stream.getTracks().forEach(t => t.stop());
+    stream = null;
+    $('scanner-video').hidden = true;
+    $('scan-message').textContent = 'Camera scanner stopped.';
+    return;
+  }
+
+  if (!('BarcodeDetector' in window)) {
+    $('scan-message').textContent = 'Camera barcode scanning is not supported here. Use a USB scanner or enter the SKU.';
+    return;
+  }
+
+  try {
+    const detector = new BarcodeDetector();
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    $('scanner-video').srcObject = stream;
+    $('scanner-video').hidden = false;
+    await $('scanner-video').play();
+    $('scan-message').textContent = 'Point the camera at a product barcode.';
+
+    const tick = async () => {
+      if (!stream) return;
+
+      try {
+        const codes = await detector.detect($('scanner-video'));
+        if (codes.length) {
+          const code = codes[0].rawValue;
+          const now = Date.now();
+          if (code !== lastScanned || now - lastScannedAt > 1800) {
+            lastScanned = code;
+            lastScannedAt = now;
+            addToCart(code);
+          }
+        }
+      } catch {}
+
+      requestAnimationFrame(tick);
+    };
+
+    tick();
+  } catch {
+    $('scan-message').textContent = 'Camera access is unavailable. Enter a SKU or use a USB scanner.';
+  }
+};
+
+
+// Init
+setAuth(false);
+
+const session = localStorage.getItem(SESSION);
+if (session) {
+  const found = users.find(x => x.email === session);
+  if (found) start(found);
+}
 </script>
 </body>
 </html>
